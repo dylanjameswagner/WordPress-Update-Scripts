@@ -1,6 +1,6 @@
 const spawnSync = require('child_process').spawnSync;
 
-let landoOutput = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json', '2>/dev/null'], { encoding : 'utf8' });
+let landoOutput = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
 pluginData = JSON.parse(landoOutput.stdout);
 
 for (let plugin of pluginData) {
