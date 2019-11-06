@@ -1,0 +1,22 @@
+const spawnSync = require('child_process').spawnSync;
+
+let siteList = spawnSync('terminus', ['site:list', '--format=json'], { encoding : 'utf8' });
+let sites = JSON.parse(siteList.stdout);
+let wordpressSites = Object.values(sites).filter((site) => (site.framework === 'wordpress' && !site.frozen));
+
+for (site of wordpressSites) {
+    let terminusOutput = spawnSync('terminus', ['wp', site.id + '.live', '--', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
+    if (terminusOutput.stdout.length) {
+        let row = [site.name];
+        let pluginData;
+        try {
+            pluginData = JSON.parse(terminusOutput.stdout);
+        } catch (e) {
+            continue;
+        }
+        for (let plugin of pluginData) {
+            row.push(`${plugin.name} ${plugin.update_version} (${plugin.status})`)
+        }
+        console.log(row.join(','));
+    }
+}
