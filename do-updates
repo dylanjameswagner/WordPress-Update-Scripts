@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const spawnSync = require('child_process').spawnSync;
 
 let landoOutput = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });

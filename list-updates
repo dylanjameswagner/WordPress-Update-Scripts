@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const spawnSync = require('child_process').spawnSync;
 
 let siteList = spawnSync('terminus', ['site:list', '--format=json'], { encoding : 'utf8' });
