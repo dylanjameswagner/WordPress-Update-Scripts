@@ -19,7 +19,7 @@ for (let plugin of pluginData) {
     }
     if (resultData[0].status == 'Updated') {
         console.log("Adding git commit...");
-        spawnSync('git', ['add', '-A']),
+        spawnSync('git', ['add', '-A', '.']),
         spawnSync('git', ['commit', '-m', `Update plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`]);
         updatedPluginList.push(plugin);
     } else {
