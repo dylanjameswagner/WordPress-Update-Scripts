@@ -3,7 +3,13 @@
 const spawnSync = require('child_process').spawnSync;
 
 let landoOutput = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
-pluginData = JSON.parse(landoOutput.stdout);
+try {
+    pluginData = JSON.parse(landoOutput.stdout);
+} catch (e) {
+    pluginData = [];
+    console.log(landoOutput.stdout);
+    console.log(`Error getting list of plugins.`);
+}
 
 let updatedPluginList = [];
 
@@ -14,6 +20,7 @@ for (let plugin of pluginData) {
     try {
         resultData = JSON.parse(output.stdout);
     } catch (e) {
+        console.log(output.stdout);
         console.log(`Error updating ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
         continue;
     }
