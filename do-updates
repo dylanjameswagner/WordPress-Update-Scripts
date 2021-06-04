@@ -1,42 +1,76 @@
 #!/usr/bin/env node
+console.log('Getting list of plugin updates...');
 
 const spawnSync = require('child_process').spawnSync;
 
-let landoOutput = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
-var pluginData = '';
+const gitTopLevelPath = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding : 'utf8' });
+const landoWPPluginPath = spawnSync('lando', ['wp', 'plugin', 'path'], { encoding : 'utf8' });
+const gitAddPluginsPath = `${gitTopLevelPath.stdout.trim()}/${landoWPPluginPath.stdout.trim().split('./')[1]}`;
+
+const landoWPPluginUpdatePluginsJSON = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
+let pluginsData = [];
+let updatedPluginList = [];
+let erroredPluginList = [];
+
 try {
-    pluginData = JSON.parse(landoOutput.stdout);
+  pluginsData = JSON.parse(landoWPPluginUpdatePluginsJSON.stdout);
 }
 catch (e) {
-    pluginData = [];
-    console.log(landoOutput.stdout);
-    console.log(`Error getting list of plugins.`);
+  console.log('Error getting list of plugin updates.');
+  console.log(landoWPPluginUpdatePluginsJSON);
+  // console.log(landoWPPluginUpdatePluginsJSON.stdout);
 }
 
-let updatedPluginList = [];
+console.log('Updating plugins...\n');
 
-for (let plugin of pluginData) {
-    console.log(`Update plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
-    let output = spawnSync('lando', ['wp', 'plugin', 'update', plugin.name, '--format=json'], { encoding : 'utf8' });
-    let resultData;
+for (let plugin of pluginsData) {
+  let landoWPPluginUpdatePluginJSON = spawnSync('lando', ['wp', 'plugin', 'update', plugin.name, '--format=json'], { encoding : 'utf8' });
+  let resultData;
+
+  try {
+    resultData = JSON.parse(landoWPPluginUpdatePluginJSON.stdout);
+  } catch (e) {
+    // console.log(e);
+    console.log(landoWPPluginUpdatePluginJSON.stdout);
+    console.log(`Error updating plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
+    continue;
+  }
+
+  if (resultData[0].status == 'Updated') {
+    const gitAdd = spawnSync('git', ['add', `${gitAddPluginsPath}/${plugin.name}`], { encoding : 'utf8' });
+    let gitAddData;
+
     try {
-        resultData = JSON.parse(output.stdout);
-    } catch (e) {
-        // console.log(e);
-        console.log(output.stdout);
-        console.log(`Error updating ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
-        continue;
+      gitAddData = gitAdd;
+      // gitAddData = JSON.parse(gitAdd.stdout);
     }
-    if (resultData[0].status == 'Updated') {
-        console.log("Adding git commit...");
-        spawnSync('git', ['add', '-A']),
-        spawnSync('git', ['commit', '-m', `Update plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`]);
-        updatedPluginList.push(plugin);
-    } else {
-        console.log(`Error updating ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
+    catch (e) {
+      console.log('Error commiting plugin update.');
+      console.log(gitAddData);
+      console.log(gitAddData.stdout);
     }
+
+    spawnSync('git', ['commit', '-m', `Update plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`]);
+    console.log(`Update plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
+    updatedPluginList.push(plugin);
+  } else {
+    console.log(`Error updating plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
+    erroredPluginList.push(plugin);
+  }
 }
 
-for (let updatedPlugin of updatedPluginList) {
-    console.log(`Updating plugin ${updatedPlugin.name} from ${updatedPlugin.version} to ${updatedPlugin.update_version}`);
+console.log(`\n${updatedPluginList.length} Plugins Updated`);
+
+if (updatedPluginList.length) {
+  console.log('Updated plugins:');
+  for (let updatedPlugin of updatedPluginList) {
+    console.log(`${updatedPlugin.name} from ${updatedPlugin.version} to ${updatedPlugin.update_version}`);
+  }
+}
+
+if (erroredPluginList.length) {
+  console.log(`\n${erroredPluginList.length} Plugins Errored`);
+  for (let erroredPlugin of erroredPluginList) {
+    console.log(`${erroredPlugin.name} from ${erroredPlugin.version} to ${erroredPlugin.update_version}`);
+  }
 }
