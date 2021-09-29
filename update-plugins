@@ -70,7 +70,7 @@ if (updatedPluginList.length) {
 }
 
 if (erroredPluginList.length) {
-  console.log(`\n${erroredPluginList.length} Plugins Errored`);
+  console.log(`\n${erroredPluginList.length} Plugin Updates Errored`);
   for (let erroredPlugin of erroredPluginList) {
     console.log(`${erroredPlugin.name} from ${erroredPlugin.version} to ${erroredPlugin.update_version}`);
   }

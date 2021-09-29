@@ -7,9 +7,9 @@ Scripts to automate updates on Wordpress sites.
 
 ## Installation
 
-1. Download the `do-updates` script to somewhere in your home directoy.
-    - for this exmaple I am putting the file in `~/bin`
-2. Make the file executable `chmod +x ~/bin/do-updates`
-3. Start your lando site locally, pull down the latest database as well.
-4. In your terminal cd into the site `cd ~/Sites/my-awesome-site`
-5. run the updater script. `~/bin/do-updates` 
+1. Clone this repo `git clone git@github.com:teamcolab/wordpress-update-scripts.git`, for this example to `~/Projects/wordpress-update-scripts`
+2. Make the update files executable `chmod +x ~/Projects/wordpress-update-scripts/update-plugins ~/Projects/wordpress-update-scripts/update-themes`
+3. From your terminal change directory into your project `cd ~/Projects/exampleproject.com/`
+4. Start your local Lando site `lando start`, pull a database as needed `lando pull --code=none --database=live --files=none`
+5. Run the plugin update script as needed `~/Projects/wordpress-update-scripts/update-plugins`
+6. Run the theme update script as needed `~/Projects/wordpress-update-scripts/update-themes`
