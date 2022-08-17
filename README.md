@@ -35,8 +35,8 @@ Scripts to automate updates on Wordpress sites.
 
 7. (Optional) Alias these commands in your shell config for quicker access
 
-    alias update-plugins='echo "~/Projects/Wordpress-Update-Scripts/update-plugins" && ~/Projects/Wordpress-Update-Scripts/update-plugins'
-    alias update-themes='echo "~/Projects/Wordpress-Update-Scripts/update-themes" && ~/Projects/Wordpress-Update-Scripts/update-themes'
+    alias update-plugins='echo "~/Projects/WordPress-Update-Scripts/update-plugins" && ~/Projects/WordPress-Update-Scripts/update-plugins'
+    alias update-themes='echo "~/Projects/WordPress-Update-Scripts/update-themes" && ~/Projects/WordPress-Update-Scripts/update-themes'
 
 ## To Do
 
