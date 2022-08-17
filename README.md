@@ -3,7 +3,7 @@
 Scripts to automate updates on Wordpress sites.
 
 ## Prerequisites
-- `node` installed locally
+- `node` - Node installed locally. It is recommended you use NVM to manange your version of Node.
 
 ## Installation
 
