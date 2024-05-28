@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+
+console.log('Getting list of theme updates...');
+
+const spawnSync = require('child_process').spawnSync;
+
+const gitTopLevelPath = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding : 'utf8' });
+const landoWPThemePath = spawnSync('lando', ['wp', 'theme', 'path'], { encoding : 'utf8' });
+const gitAddThemesPath = `${gitTopLevelPath.stdout.trim()}/${landoWPThemePath.stdout.trim().split('./')[1]}`;
+
+const landoWPThemeUpdateThemesJSON = spawnSync('lando', ['wp', 'theme', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
+let themesData = [];
+let updatedThemeList = [];
+let erroredThemeList = [];
+
+try {
+  themesData = JSON.parse(landoWPThemeUpdateThemesJSON.stdout);
+}
+catch (e) {
+  console.log('Error getting list of theme updates.');
+  console.log(landoWPThemeUpdateThemesJSON);
+  // console.log(landoWPThemeUpdateThemesJSON.stdout);
+}
+
+console.log('Updating themes...\n');
+
+for (let theme of themesData) {
+  let landoWPThemeUpdateThemeJSON = spawnSync('lando', ['wp', 'theme', 'update', theme.name, '--format=json'], { encoding : 'utf8' });
+  let resultData;
+
+  try {
+    resultData = JSON.parse(landoWPThemeUpdateThemeJSON.stdout);
+  } catch (e) {
+    // console.log(e);
+    console.log(landoWPThemeUpdateThemeJSON.stdout);
+    console.log(`Error updating theme ${theme.name} from ${theme.version} to ${theme.update_version}`);
+    continue;
+  }
+
+  if (resultData[0].status == 'Updated') {
+    const gitAdd = spawnSync('git', ['add', `${gitAddThemesPath}/${theme.name}`], { encoding : 'utf8' });
+    let gitAddData;
+
+    try {
+      gitAddData = gitAdd;
+      // gitAddData = JSON.parse(gitAdd.stdout);
+    }
+    catch (e) {
+      console.log('Error commiting theme update.');
+      console.log(gitAddData);
+      console.log(gitAddData.stdout);
+    }
+
+    spawnSync('git', ['commit', '-m', `Update theme ${theme.name} from ${theme.version} to ${theme.update_version}`]);
+    console.log(`Update theme ${theme.name} from ${theme.version} to ${theme.update_version}`);
+    updatedThemeList.push(theme);
+  } else {
+    console.log(`Error updating theme ${theme.name} from ${theme.version} to ${theme.update_version}`);
+    erroredThemeList.push(theme);
+  }
+}
+
+console.log(`\n${updatedThemeList.length} Themes Updated`);
+
+if (updatedThemeList.length) {
+  console.log('Updated themes:');
+  for (let updatedTheme of updatedThemeList) {
+    console.log(`${updatedTheme.name} from ${updatedTheme.version} to ${updatedTheme.update_version}`);
+  }
+}
+
+if (erroredThemeList.length) {
+  console.log(`\n${erroredThemeList.length} Theme Updates Errored`);
+  for (let erroredTheme of erroredThemeList) {
+    console.log(`${erroredTheme.name} from ${erroredTheme.version} to ${erroredTheme.update_version}`);
+  }
+}
