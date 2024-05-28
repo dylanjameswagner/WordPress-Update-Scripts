@@ -4,36 +4,38 @@ console.log('Getting list of plugin updates...');
 
 const spawnSync = require('child_process').spawnSync;
 
-const gitTopLevelPath = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding : 'utf8' });
-const landoWPPluginPath = spawnSync('lando', ['wp', 'plugin', 'path'], { encoding : 'utf8' });
-const gitAddPluginsPath = `${gitTopLevelPath.stdout.trim()}/${landoWPPluginPath.stdout.trim().split('./')[1]}`;
+const pluginsPath = spawnSync('wp', ['plugin', 'path'], { encoding : 'utf8' });
 
-const landoWPPluginUpdatePluginsJSON = spawnSync('lando', ['wp', 'plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
+// const gitPath = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding : 'utf8' });
+// const gitAddPluginsPath = `${gitPath.stdout.trim()}/${pluginsPath.stdout.trim().split('./')[1]}`;
+const gitAddPluginsPath = pluginsPath.stdout.trim();
+
+const pluginUpdateAllJSON = spawnSync('wp', ['plugin', 'update', '--all', '--dry-run', '--format=json'], { encoding : 'utf8' });
 let pluginsData = [];
 let updatedPluginList = [];
 let erroredPluginList = [];
 
 try {
-  pluginsData = JSON.parse(landoWPPluginUpdatePluginsJSON.stdout);
-}
-catch (e) {
+  pluginsData = JSON.parse(pluginUpdateAllJSON.stdout);
+} catch (e) {
   console.log('Error getting list of plugin updates.');
-  console.log(landoWPPluginUpdatePluginsJSON);
-  // console.log(landoWPPluginUpdatePluginsJSON.stdout);
+  console.log(e);
+  // console.log(pluginUpdateAllJSON);
+  console.log(pluginUpdateAllJSON.stdout);
 }
 
 console.log('Updating plugins...\n');
 
 for (let plugin of pluginsData) {
-  let landoWPPluginUpdatePluginJSON = spawnSync('lando', ['wp', 'plugin', 'update', plugin.name, '--format=json'], { encoding : 'utf8' });
+  let pluginUpdateJSON = spawnSync('wp', ['plugin', 'update', plugin.name, '--format=json'], { encoding : 'utf8' });
   let resultData;
 
   try {
-    resultData = JSON.parse(landoWPPluginUpdatePluginJSON.stdout);
+    resultData = JSON.parse(pluginUpdateJSON.stdout);
   } catch (e) {
-    // console.log(e);
-    console.log(landoWPPluginUpdatePluginJSON.stdout);
     console.log(`Error updating plugin ${plugin.name} from ${plugin.version} to ${plugin.update_version}`);
+    console.log(e);
+    console.log(pluginUpdateJSON.stdout);
     continue;
   }
 
@@ -44,8 +46,8 @@ for (let plugin of pluginsData) {
     try {
       gitAddData = gitAdd;
       // gitAddData = JSON.parse(gitAdd.stdout);
-    }
-    catch (e) {
+    } catch (e) {
+      // console.log(e);
       console.log('Error commiting plugin update.');
       console.log(gitAddData);
       console.log(gitAddData.stdout);
@@ -63,14 +65,14 @@ for (let plugin of pluginsData) {
 console.log(`\n${updatedPluginList.length} Plugins Updated`);
 
 if (updatedPluginList.length) {
-  console.log('Updated plugins:');
   for (let updatedPlugin of updatedPluginList) {
     console.log(`${updatedPlugin.name} from ${updatedPlugin.version} to ${updatedPlugin.update_version}`);
   }
 }
 
 if (erroredPluginList.length) {
-  console.log(`\n${erroredPluginList.length} Plugin Updates Errored`);
+  console.log(`\n${erroredPluginList.length} Plugin Update Errors`);
+
   for (let erroredPlugin of erroredPluginList) {
     console.log(`${erroredPlugin.name} from ${erroredPlugin.version} to ${erroredPlugin.update_version}`);
   }
