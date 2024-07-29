@@ -4,7 +4,7 @@ console.log('Getting list of theme updates...');
 
 const spawnSync = require('child_process').spawnSync;
 
-const updatePath = spawnSync('wp', ['plugin', 'path'], { encoding : 'utf8' });
+const updatePath = spawnSync('wp', ['theme', 'path'], { encoding : 'utf8' });
 
 // const gitPath = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding : 'utf8' });
 // const gitAddPath = `${gitPath.stdout.trim()}/${updatePath.stdout.trim().split('./')[1]}`;
@@ -33,7 +33,6 @@ for (let theme of updateData) {
   try {
     resultData = JSON.parse(updateJSON.stdout);
   } catch (e) {
-    // console.log(e);
     console.log(`Error updating theme ${theme.name} from ${theme.version} to ${theme.update_version}`);
     console.log(e);
     console.log(updateJSON.stdout);
