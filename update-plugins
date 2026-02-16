@@ -17,14 +17,13 @@ let errorList = [];
 
 try {
   updateData = JSON.parse(updateJSON.stdout);
+  console.log('Updating plugins...\n');
 } catch (e) {
   console.log('Error getting list of plugin updates.');
   console.log(e);
-  // console.log(updateJSON);
-  console.log(updateJSON.stdout);
+  console.log(updateJSON);
+  // console.log(updateJSON.stdout);
 }
-
-console.log('Updating plugins...\n');
 
 for (let plugin of updateData) {
   let updateJSON = spawnSync('wp', ['plugin', 'update', plugin.name, '--format=json'], { encoding : 'utf8' });
