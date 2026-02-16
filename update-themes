@@ -17,14 +17,13 @@ let errorList = [];
 
 try {
   updateData = JSON.parse(updateJSON.stdout);
+  console.log('Updating themes...\n');
 } catch (e) {
   console.log('Error getting list of theme updates.');
   console.log(e);
-  // console.log(updateJSON);
-  console.log(updateJSON.stdout);
+  console.log(updateJSON);
+  // console.log(updateJSON.stdout);
 }
-
-console.log('Updating themes...\n');
 
 for (let theme of updateData) {
   let updateJSON = spawnSync('wp', ['theme', 'update', theme.name, '--format=json'], { encoding : 'utf8' });
