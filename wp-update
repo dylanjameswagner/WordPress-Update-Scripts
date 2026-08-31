@@ -1,7 +1,24 @@
 #!/usr/bin/env node
 
-const plural = 'plugins';
-const singular = 'plugin';
+const args = process.argv.slice(2, 3);
+
+let plural = '';
+let singular = '';
+
+switch (args[0]) {
+
+  case 'plugin' :
+  case 'plugins' :
+    plural = 'plugins';
+    singular = 'plugin';
+    break;
+
+  case 'theme' :
+  case 'themes' :
+    plural = 'themes';
+    singular = 'theme';
+    break;
+}
 
 console.log(`Getting list of ${singular} updates...`);
 
@@ -23,13 +40,14 @@ try {
   // Check for application-level errors (non-zero exit code)
   if (result.status !== 0) {
     console.error(`Command failed with exit code ${result.status}`);
-    console.error(`Error output:\n${result.stderr}`);
+    console.error(`Error output:\n`);
+    console.error(`${result.stderr}`);
     process.exit(result.status || 1);
   }
 
   // Check for empty stdout
   if (result.stdout === '') {
-    console.error(`No ${singular} updates available`);
+    console.error(`No ${singular} updates available.`);
     process.exit(1);
   }
 
@@ -42,7 +60,8 @@ try {
   process.exit(1);
 }
 
-console.log(`Updating ${plural}...\n`);
+console.log(`Updating ${plural}...`);
+console.log(`\n`);
 
 const updatePath = spawnSync('wp', [singular, 'path'], { encoding : 'utf8' });
 
@@ -90,7 +109,8 @@ for (let update of updateData) {
   }
 }
 
-console.log(`\n${updateList.length} ${plural} updated`);
+console.log(`\n`);
+console.log(`${updateList.length} ${plural} updated`);
 
 if (updateList.length) {
   for (let update of updateList) {
@@ -99,7 +119,8 @@ if (updateList.length) {
 }
 
 if (errorList.length) {
-  console.log(`\n${errorList.length} ${singular} errors`);
+  console.log(`\n`);
+  console.log(`${errorList.length} ${singular} errors`);
 
   for (let update of errorList) {
     console.log(`${update.name} from ${update.version} to ${update.update_version}`);

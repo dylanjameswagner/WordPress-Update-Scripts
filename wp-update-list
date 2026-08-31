@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+process.exit(1);
+
 // const spawnSync = require('child_process').spawnSync;
 //
 // let siteList = spawnSync('terminus', ['site:list', '--format=json'], { encoding : 'utf8' });
@@ -22,5 +24,3 @@
 //     console.log(row.join(','));
 //   }
 // }
-
-wp plugin update --all --dry-run --format=summary
